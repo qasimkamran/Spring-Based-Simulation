@@ -52,6 +52,7 @@ void myInit(); // the myinit function runs once, before rendering starts and sho
 void nodeDisplay(raaNode *pNode); // callled by the display function to draw nodes
 void arcDisplay(raaArc *pArc); // called by the display function to draw arcs
 void buildGrid(); // build the grid display list - display list are a performance optimization
+float* continentColor(int continent); // abstracts switch statement for continent color
 
 // UI menu functions
 void createGlutMenu();
@@ -255,6 +256,17 @@ void menu(int item)
 	glutPostRedisplay();
 }
 
+float* continentColor(int continent)
+{
+	switch (continent)
+	{
+		case 6:
+			return new float[4] { 1.0f, 0.0f, 0.0f, 1.0f };
+		default:
+			return new float[4] { 0.0f, 1.0f, 0.0f, 1.0f };
+	}
+}
+
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
 {
 	// put your node rendering (ogl) code here
@@ -265,8 +277,8 @@ void nodeDisplay(raaNode *pNode) // function to render a node (called from displ
 	glPushMatrix();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	float colour[] = { 0.0f, 1.0f, 0.0f, 1.0f };
-	utilitiesColourToMat(colour, 1.0f);
+	float* color = continentColor(continent); // { 0.0f, 1.0f, 0.0f, 1.0f };
+	utilitiesColourToMat(color, 1.0f);
 
 	glTranslated(position[0], position[1], position[2]);
 	glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
