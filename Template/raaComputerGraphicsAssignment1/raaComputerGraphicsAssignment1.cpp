@@ -57,6 +57,21 @@ void buildGrid(); //
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
 {
 	// put your node rendering (ogl) code here
+
+	float* position = pNode->m_afPosition;
+	unsigned int continent = pNode->m_uiContinent;
+
+	glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+	float colour[] = { 0.0f, 1.0f, 0.0f, 1.0f };
+	utilitiesColourToMat(colour, 1.0f);
+
+	glTranslated(position[0], position[1], position[2]);
+	glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
+
+	glPopMatrix();
+	glPopAttrib();
 }
 
 void arcDisplay(raaArc *pArc) // function to render an arc (called from display())
