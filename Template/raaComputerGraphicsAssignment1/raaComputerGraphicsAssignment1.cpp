@@ -77,6 +77,21 @@ void nodeDisplay(raaNode *pNode) // function to render a node (called from displ
 void arcDisplay(raaArc *pArc) // function to render an arc (called from display())
 {
 	// put your arc rendering (ogl) code here
+
+	raaNode* node0 = pArc->m_pNode0;
+	raaNode* node1 = pArc->m_pNode1;
+
+	glEnable(GL_COLOR_MATERIAL);
+	glDisable(GL_LIGHTING);
+	
+	glBegin(GL_LINES);
+
+		glColor3f(0.0f, 1.0f, 0.0f);
+		glVertex3f(node0->m_afPosition[0], node0->m_afPosition[1], node0->m_afPosition[2]);
+		glColor3f(1.0f, 0.0f, 0.0f);
+		glVertex3f(node1->m_afPosition[0], node1->m_afPosition[1], node1->m_afPosition[2]);
+	
+	glEnd();
 }
 
 // draw the scene. Called once per frame and should only deal with scene drawing (not updating the simulator)
