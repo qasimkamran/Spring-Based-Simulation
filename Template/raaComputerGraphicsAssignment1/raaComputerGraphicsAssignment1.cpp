@@ -52,16 +52,35 @@ void myInit(); // the myinit function runs once, before rendering starts and sho
 void nodeDisplay(raaNode *pNode); // callled by the display function to draw nodes
 void arcDisplay(raaArc *pArc); // called by the display function to draw arcs
 void buildGrid(); // 
-float* continentColor(int continent); // abstracts switch statement for continent color
+float* getContinentColor(int continent); // abstracts switch statement for continent color
 
-float* continentColor(int continent)
+float* getContinentColor(int continent)
 {
 	switch (continent)
 	{
-		case 6:
+		case 0: // Red
 			return new float[4] { 1.0f, 0.0f, 0.0f, 1.0f };
-		default:
+			break;
+		case 1: // Orange
+			return new float[4] { 0.5f, 0.5f, 0.5f, 1.0f };
+			break;
+		case 2: // Yellow
+			return new float[4] { 1.0f, 1.0f, 0.0f, 1.0f };
+			break;
+		case 3: // Green
 			return new float[4] { 0.0f, 1.0f, 0.0f, 1.0f };
+			break;
+		case 4: // Blue
+			return new float[4] { 0.0f, 0.0f, 1.0f, 1.0f };
+			break;
+		case 5: // White
+			return new float[4] { 1.0f, 1.0f, 1.0f, 1.0f };
+			break;
+		case 6: // Purple
+			return new float[4] { 0.56f, 1.0f, 0.0f, 1.0f };
+			break;
+		default: // Black
+			return new float[4] { 0.0f, 0.0f, 0.0f, 1.0f };
 	}
 }
 
@@ -75,7 +94,7 @@ void nodeDisplay(raaNode *pNode) // function to render a node (called from displ
 	glPushMatrix();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	float* color = continentColor(continent); // { 0.0f, 1.0f, 0.0f, 1.0f };
+	float* color = getContinentColor(continent);
 	utilitiesColourToMat(color, 1.0f);
 
 	glTranslated(position[0], position[1], position[2]);
