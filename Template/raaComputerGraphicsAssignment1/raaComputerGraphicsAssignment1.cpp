@@ -52,56 +52,66 @@ void myInit(); // the myinit function runs once, before rendering starts and sho
 void nodeDisplay(raaNode *pNode); // callled by the display function to draw nodes
 void arcDisplay(raaArc *pArc); // called by the display function to draw arcs
 void buildGrid(); // 
-float* getContinentColor(int continent); // abstracts switch statement for continent color
+void setContinentNodeAttributes(raaNode *pNode, int continent); //abstracts switch statement for continent shape
+void drawLabels(raaNode* pNode); //draws labels inside a mattrix
 
-float* getContinentColor(int continent)
+void setContinentNodeAttributes(raaNode *pNode, int continent)
 {
+	float* position = pNode->m_afPosition;
+	glTranslated(position[0], position[1], position[2]);
 	switch (continent)
 	{
-		case 0: // Red
-			return new float[4] { 1.0f, 0.0f, 0.0f, 1.0f };
+		case 1: // Red Cube
+			utilitiesColourToMat(new float[4] { 1.0f, 0.0f, 0.0f, 1.0f }, 1.0f);
+			glutSolidCube(mathsDimensionOfCubeFromVolume(pNode->m_fMass));
 			break;
-		case 1: // Orange
-			return new float[4] { 0.5f, 0.5f, 0.5f, 1.0f };
+		case 2: // Green Cube
+			utilitiesColourToMat(new float[4] { 0.0f, 1.0f, 0.0f, 1.0f }, 1.0f);
+			glutSolidCube(mathsDimensionOfCubeFromVolume(pNode->m_fMass));
 			break;
-		case 2: // Yellow
-			return new float[4] { 1.0f, 1.0f, 0.0f, 1.0f };
+		case 3: // Blue Cube
+			utilitiesColourToMat(new float[4] { 0.0f, 0.0f, 1.0f, 1.0f }, 1.0f);
+			glutSolidCube(mathsDimensionOfCubeFromVolume(pNode->m_fMass));
 			break;
-		case 3: // Green
-			return new float[4] { 0.0f, 1.0f, 0.0f, 1.0f };
+		case 4: // Red Sphere
+			utilitiesColourToMat(new float[4] { 1.0f, 0.0f, 0.0f, 1.0f }, 1.0f);
+			glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
 			break;
-		case 4: // Blue
-			return new float[4] { 0.0f, 0.0f, 1.0f, 1.0f };
+		case 5: // Green Sphere
+			utilitiesColourToMat(new float[4] { 0.0f, 1.0f, 0.0f, 1.0f }, 1.0f);
+			glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
 			break;
-		case 5: // White
-			return new float[4] { 1.0f, 1.0f, 1.0f, 1.0f };
-			break;
-		case 6: // Purple
-			return new float[4] { 0.56f, 1.0f, 0.0f, 1.0f };
+		case 6: // Random Doughnut
+			utilitiesColourToMat(new float[4] { 1.0f, 0.5f, 0.0f, 1.0f }, 1.0f);
+			glutSolidTorus(5.0f, mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
 			break;
 		default: // Black
-			return new float[4] { 0.0f, 0.0f, 0.0f, 1.0f };
+			utilitiesColourToMat(new float[4] { 0.0f, 0.0f, 0.0f, 1.0f }, 1.0f);
+			glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
 	}
+	drawLabels(pNode);
+}
+
+void drawLabels(raaNode* pNode)
+{
+	glScalef(10.0f, 10.0f, 2.0f);
+	glTranslatef(0.0f, 1.50f, 0.0f);
+	outlinePrint(pNode->m_acName);
 }
 
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
 {
 	// put your node rendering (ogl) code here
 
-	float* position = pNode->m_afPosition;
 	unsigned int continent = pNode->m_uiContinent;
 
 	glPushMatrix();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	
+	setContinentNodeAttributes(pNode, continent);
 
-	float* color = getContinentColor(continent);
-	utilitiesColourToMat(color, 1.0f);
-
-	glTranslated(position[0], position[1], position[2]);
-	glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
-
-	glPopMatrix();
 	glPopAttrib();
+	glPopMatrix();
 }
 
 void arcDisplay(raaArc *pArc) // function to render an arc (called from display())
@@ -149,6 +159,8 @@ void display()
 	glTranslatef(0.0f, 30.0f, 0.0f);
 	glutSolidSphere(5.0f, 10, 10);
 	glPopMatrix();
+
+	
 
 	glFlush(); // ensure all the ogl instructions have been processed
 	glutSwapBuffers(); // present the rendered scene to the screen
@@ -306,8 +318,7 @@ int main(int argc, char* argv[])
 		glutInitWindowSize(csg_uiWindowDefinition[csg_uiWidth], csg_uiWindowDefinition[csg_uiHeight]); // set rendering window size
 		glutCreateWindow("raaAssignment1-2017");  // create rendering window and give it a name
 
-		buildFont(); // setup text rendering (use outline print function to render 3D text
-
+		buildFont(); // setup text rendering (use outline print function to render 3D text)
 
 		myInit(); // application specific initialisation
 
