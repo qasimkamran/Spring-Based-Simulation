@@ -1,5 +1,7 @@
 # Ignore Everything
 *
+# Ignore .ipch
+*.ipch
 # except .cpp
 !*.cpp
 # except directories
