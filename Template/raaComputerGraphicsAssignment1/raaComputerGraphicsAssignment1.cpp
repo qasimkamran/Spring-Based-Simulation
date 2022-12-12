@@ -51,8 +51,14 @@ void motion(int iXPos, int iYPos); // called for each mouse motion event
 void myInit(); // the myinit function runs once, before rendering starts and should be used for setup
 void nodeDisplay(raaNode *pNode); // callled by the display function to draw nodes
 void arcDisplay(raaArc *pArc); // called by the display function to draw arcs
-void buildGrid(); // 
+void buildGrid();
 
+// Qasim's functions
+void oscillatingSphereTransform();
+
+// global variiables for animation example sphere
+float y_pos = 30.0f; // y position of sphere modelling animation
+int direction = 1; // boolean indicating direction of oscillation
 
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
 {
@@ -116,7 +122,7 @@ void display()
 	utilitiesColourToMat(afCol, 2.0f);
 
 	glPushMatrix();
-	glTranslatef(0.0f, 30.0f, 0.0f);
+	glTranslatef(0.0f, y_pos, 0.0f);
 	glutSolidSphere(5.0f, 10, 10);
 	glPopMatrix();
 
@@ -125,12 +131,23 @@ void display()
 }
 
 // processing of system and camera data outside of the renderng loop
-void idle() 
+void idle()
 {
 	controlChangeResetAll(g_Control); // re-set the update status for all of the control flags
 	camProcessInput(g_Input, g_Camera); // update the camera pos/ori based on changes since last render
 	camResetViewportChanged(g_Camera); // re-set the camera's viwport changed flag after all events have been processed
-	glutPostRedisplay();// ask glut to update the screen
+	oscillatingSphereTransform(); // oscillates simple sphere
+	glutPostRedisplay(); // ask glut to update the screen
+}
+
+// adjusts y_pos variable in direction of oscillation
+void oscillatingSphereTransform()
+{
+	y_pos += 0.01f * direction;
+	if (y_pos >= 35.0f)
+		direction = -1;
+	else if (y_pos <= 30.0f)
+		direction = 1;
 }
 
 // respond to a change in window position or shape
@@ -274,7 +291,7 @@ int main(int argc, char* argv[])
 		glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA); // define buffers to use in ogl
 		glutInitWindowPosition(csg_uiWindowDefinition[csg_uiX], csg_uiWindowDefinition[csg_uiY]);  // set rendering window position
 		glutInitWindowSize(csg_uiWindowDefinition[csg_uiWidth], csg_uiWindowDefinition[csg_uiHeight]); // set rendering window size
-		glutCreateWindow("raaAssignment1-2017");  // create rendering window and give it a name
+		glutCreateWindow("raaAssignment1-2022");  // create rendering window and give it a name
 
 		buildFont(); // setup text rendering (use outline print function to render 3D text
 
