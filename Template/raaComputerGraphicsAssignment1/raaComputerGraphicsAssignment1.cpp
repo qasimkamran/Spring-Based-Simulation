@@ -51,8 +51,14 @@ void motion(int iXPos, int iYPos); // called for each mouse motion event
 void myInit(); // the myinit function runs once, before rendering starts and should be used for setup
 void nodeDisplay(raaNode *pNode); // callled by the display function to draw nodes
 void arcDisplay(raaArc *pArc); // called by the display function to draw arcs
-void buildGrid(); // 
+void buildGrid(); // build the grid display list - display list are a performance optimization
 
+// Spring primer functions
+void springPrimer(raaSystem *pSystem);
+
+void springPrimer(raaSystem *pSystem)
+{
+}
 
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
 {
