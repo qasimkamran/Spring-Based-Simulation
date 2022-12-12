@@ -41,4 +41,3 @@ void outlinePrint(char* acString, bool bCentre)
 		glPopMatrix();
 	}
 }
-
