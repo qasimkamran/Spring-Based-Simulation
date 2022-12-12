@@ -55,9 +55,16 @@ void buildGrid(); // build the grid display list - display list are a performanc
 
 // Spring primer functions
 void springPrimer(raaSystem *pSystem);
+void resetResultantForce(raaNode *pNode);
 
 void springPrimer(raaSystem *pSystem)
 {
+	visitNodes(&g_System, resetResultantForce);
+}
+
+void resetResultantForce(raaNode *pNode)
+{
+	pNode->m_resultantForce = 0;
 }
 
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
