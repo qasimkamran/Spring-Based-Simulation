@@ -1,0 +1,8 @@
+# Ignore Everything
+*
+# except .cpp
+!*.cpp
+# except directories
+!*/
+!.gitignore
+!README.md
