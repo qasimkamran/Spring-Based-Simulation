@@ -114,7 +114,7 @@ void parse(const char* acFile, parseSectionFunction *pSectionFunction, parseNetw
 
 									sprintf_s(acId0, "%s", strtok_s(acLine, " \t\n", &acNext));
 									sprintf_s(acId1, "%s", strtok_s(0, " \t\n", &acNext));
-									sprintf_s(acStrength, "%s", strtok_s(0, " \t\"\n", &acNext));
+									sprintf_s(acStrength, "%s", strtok_s(0, " \t\n", &acNext));
 
 									if (pArcFunction) pArcFunction(acLine, acId0, acId1, acStrength);
 

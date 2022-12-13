@@ -42,7 +42,7 @@ const static unsigned int csg_uiParseContinent = 1;
 const static unsigned int csg_uiParseWorldSystem = 2;
 const static float csg_afParseLayoutScale[] = { 800.0f, 800.0f, 800.0f };
 const static float csg_fParseDefaultMass = 100.0f;
-const static float csg_fParseDefaultSize = 1.0f;
+const static float csg_fParseDefaultSize = 500.0f;
 
 // grid
 const static float csg_afDisplayListGridColour[] = { 0.3f, 0.3f, 0.1f, 0.3f };

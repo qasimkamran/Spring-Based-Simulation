@@ -55,14 +55,20 @@ void buildGrid(); // build the grid display list - display list are a performanc
 
 // Spring primer functions
 void springPrimer();
-void setResultantForce(raaNode *pNode, float *Forces);
+void addToResultantForce(raaNode *pNode, float *force);
 void resetResultantForce(raaNode *pNode);
+void setVelocity(raaNode *pNode, float *velocity);
 void deriveForces(raaArc *pArc);
+void deriveTranslation(raaNode *pNode);
+
+// Spring primer variables
+const float DAMPING_COEF = 0.99995f;
 
 void springPrimer()
 {
 	visitNodes(&g_System, resetResultantForce);
 	visitArcs(&g_System, deriveForces);
+	visitNodes(&g_System, deriveTranslation);
 }
 
 void deriveForces(raaArc *pArc)
@@ -71,40 +77,59 @@ void deriveForces(raaArc *pArc)
 	raaNode *pNode_1 = pArc->m_pNode1;
 
 	float resultantVector[3];
-	float distance = 0;
+	long double distance = 0;
 	for (int i = 0; i < 3; i++)
 	{
-		resultantVector[i] = pNode_0->m_afPosition[i] - pNode_1->m_afPosition[i];
+		resultantVector[i] = pNode_1->m_afPosition[i] - pNode_0->m_afPosition[i];
 		distance += mathsSquared(resultantVector[i]);
 	}
 	distance = sqrt(distance);
 
 	float resultantUnitVector[3];
 	for (int i = 0; i < 3; i++)
-	{
 		resultantUnitVector[i] = resultantVector[i] / distance;
-	}
 
 	float extension = distance - pArc->m_fIdealLen;
 	float extensionVector[3];
 	for (int i = 0; i < 3; i++)
-	{
 		extensionVector[i] = extension * resultantUnitVector[i];
-	}
 
-	float springForce[3];
+	float springForce_0[3];
 	for (int i = 0; i < 3; i++)
-	{
-		springForce[i] = extensionVector[i] * pArc->m_fSpringCoef;
-	}
+		springForce_0[i] = extensionVector[i] * pArc->m_fSpringCoef;
 
-	setResultantForce(pNode_0, springForce);
-	setResultantForce(pNode_1, springForce);
+	float springForce_1[3];
+	for (int i = 0; i < 3; i++)
+		springForce_1[i] = springForce_0[i] * -1;
+
+	addToResultantForce(pNode_0, springForce_0);
+	addToResultantForce(pNode_1, springForce_1);
 }
 
-void setResultantForce(raaNode *pNode, float *Forces)
+void deriveTranslation(raaNode *pNode)
 {
-	vecCopy(Forces, pNode->m_resultantForce);
+	float acceleration[3];
+	for (int i = 0; i < 3; i++)
+		acceleration[i] = pNode->m_resultantForce[i] / pNode->m_fMass;
+
+	float velocity[3];
+	for (int i = 0; i < 3; i++)
+		velocity[i] = (pNode->m_velocity[i] + acceleration[i]) * (1 - DAMPING_COEF);
+
+	setVelocity(pNode, velocity);
+	
+	for (int i = 0; i < 3; i++)
+		pNode->m_afPosition[i] += pNode->m_velocity[i];
+}
+
+void setVelocity(raaNode *pNode, float *velocity)
+{
+	vecCopy(velocity, pNode->m_velocity);
+}
+
+void addToResultantForce(raaNode *pNode, float *force)
+{
+	vecAdd(force, pNode->m_resultantForce, pNode->m_resultantForce);
 }
 
 void resetResultantForce(raaNode *pNode)
@@ -191,7 +216,7 @@ void idle()
 	controlChangeResetAll(g_Control); // re-set the update status for all of the control flags
 	camProcessInput(g_Input, g_Camera); // update the camera pos/ori based on changes since last render
 	camResetViewportChanged(g_Camera); // re-set the camera's viwport changed flag after all events have been processed
-	//springPrimer();
+	springPrimer();
 	glutPostRedisplay();// ask glut to update the screen
 }
 

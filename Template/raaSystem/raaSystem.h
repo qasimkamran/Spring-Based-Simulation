@@ -23,6 +23,7 @@ typedef struct _raaNode
 	unsigned int m_uiWorldSystem;
 	char m_acName[64];
 	float m_resultantForce[4];
+	float m_velocity[4];
 } raaNode;
 
 typedef struct _raaArc
