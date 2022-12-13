@@ -55,7 +55,6 @@ void buildGrid(); // build the grid display list - display list are a performanc
 
 // Spring primer functions
 void springPrimer();
-void addToResultantForce(raaNode *pNode, float *force);
 void resetResultantForce(raaNode *pNode);
 void setVelocity(raaNode *pNode, float *velocity);
 void deriveForces(raaArc *pArc);
@@ -66,8 +65,13 @@ const float DAMPING_COEF = 0.99995f;
 
 void springPrimer()
 {
+	// Step 1
 	visitNodes(&g_System, resetResultantForce);
+	
+	// Step 2
 	visitArcs(&g_System, deriveForces);
+	
+	// Step 3
 	visitNodes(&g_System, deriveTranslation);
 }
 
@@ -78,11 +82,9 @@ void deriveForces(raaArc *pArc)
 
 	float resultantVector[3];
 	long double distance = 0;
+	vecSub(pNode_1->m_afPosition, pNode_0->m_afPosition, resultantVector);
 	for (int i = 0; i < 3; i++)
-	{
-		resultantVector[i] = pNode_1->m_afPosition[i] - pNode_0->m_afPosition[i];
 		distance += mathsSquared(resultantVector[i]);
-	}
 	distance = sqrt(distance);
 
 	float resultantUnitVector[3];
@@ -91,19 +93,16 @@ void deriveForces(raaArc *pArc)
 
 	float extension = distance - pArc->m_fIdealLen;
 	float extensionVector[3];
-	for (int i = 0; i < 3; i++)
-		extensionVector[i] = extension * resultantUnitVector[i];
+	vecScalarProduct(resultantUnitVector, extension, extensionVector);
 
 	float springForce_0[3];
-	for (int i = 0; i < 3; i++)
-		springForce_0[i] = extensionVector[i] * pArc->m_fSpringCoef;
+	vecScalarProduct(extensionVector, pArc->m_fSpringCoef, springForce_0);
 
 	float springForce_1[3];
-	for (int i = 0; i < 3; i++)
-		springForce_1[i] = springForce_0[i] * -1;
+	vecScalarProduct(springForce_0, -1.0f, springForce_1);
 
-	addToResultantForce(pNode_0, springForce_0);
-	addToResultantForce(pNode_1, springForce_1);
+	vecAdd(pNode_0->m_resultantForce, springForce_0, pNode_0->m_resultantForce);
+	vecAdd(pNode_1->m_resultantForce, springForce_1, pNode_1->m_resultantForce);
 }
 
 void deriveTranslation(raaNode *pNode)
@@ -125,11 +124,6 @@ void deriveTranslation(raaNode *pNode)
 void setVelocity(raaNode *pNode, float *velocity)
 {
 	vecCopy(velocity, pNode->m_velocity);
-}
-
-void addToResultantForce(raaNode *pNode, float *force)
-{
-	vecAdd(force, pNode->m_resultantForce, pNode->m_resultantForce);
 }
 
 void resetResultantForce(raaNode *pNode)
