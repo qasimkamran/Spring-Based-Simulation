@@ -19,3 +19,4 @@ float randFloat(float fMin=0.0f, float fMax=1.0f);
 float mathsRadiusOfSphereFromVolume(float fVolume);
 float mathsDimensionOfCubeFromVolume(float fVolume);
 float mathsRadiusOfConeFromVolume(float fVolume);
+float mathsSquared(float fValue);

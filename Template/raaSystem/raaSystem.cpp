@@ -23,7 +23,7 @@ raaNode* initNode(raaNode* pNode, unsigned int uiId, float* pfPosition, float fM
 		pNode->m_uiId = uiId;
 		pNode->m_uiContinent = 0;
 		pNode->m_uiWorldSystem = 0;
-		pNode->m_resultantForce = 0;
+		vecInitPVec(pNode->m_resultantForce);
 	}
 
 	return pNode;

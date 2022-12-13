@@ -54,17 +54,65 @@ void arcDisplay(raaArc *pArc); // called by the display function to draw arcs
 void buildGrid(); // build the grid display list - display list are a performance optimization
 
 // Spring primer functions
-void springPrimer(raaSystem *pSystem);
+void springPrimer();
+void setResultantForce(raaNode *pNode, float *Forces);
 void resetResultantForce(raaNode *pNode);
+void deriveForces(raaArc *pArc);
 
-void springPrimer(raaSystem *pSystem)
+void springPrimer()
 {
 	visitNodes(&g_System, resetResultantForce);
+	visitArcs(&g_System, deriveForces);
+}
+
+void deriveForces(raaArc *pArc)
+{
+	raaNode *pNode_0 = pArc->m_pNode0;
+	raaNode *pNode_1 = pArc->m_pNode1;
+
+	float resultantVector[3];
+	float distance = 0;
+	for (int i = 0; i < 3; i++)
+	{
+		resultantVector[i] = pNode_0->m_afPosition[i] - pNode_1->m_afPosition[i];
+		distance += mathsSquared(resultantVector[i]);
+	}
+	distance = sqrt(distance);
+
+	float resultantUnitVector[3];
+	for (int i = 0; i < 3; i++)
+	{
+		resultantUnitVector[i] = resultantVector[i] / distance;
+	}
+
+	float extension = distance - pArc->m_fIdealLen;
+	float extensionVector[3];
+	for (int i = 0; i < 3; i++)
+	{
+		extensionVector[i] = extension * resultantUnitVector[i];
+	}
+
+	float springForce[3];
+	for (int i = 0; i < 3; i++)
+	{
+		springForce[i] = extensionVector[i] * pArc->m_fSpringCoef;
+	}
+
+	setResultantForce(pNode_0, springForce);
+	setResultantForce(pNode_1, springForce);
+}
+
+void setResultantForce(raaNode *pNode, float *Forces)
+{
+	vecCopy(Forces, pNode->m_resultantForce);
 }
 
 void resetResultantForce(raaNode *pNode)
 {
-	pNode->m_resultantForce = 0;
+	// resultant forces in x, y and z directions
+	pNode->m_resultantForce[0] = 0;
+	pNode->m_resultantForce[1] = 0;
+	pNode->m_resultantForce[2] = 0;
 }
 
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
@@ -143,6 +191,7 @@ void idle()
 	controlChangeResetAll(g_Control); // re-set the update status for all of the control flags
 	camProcessInput(g_Input, g_Camera); // update the camera pos/ori based on changes since last render
 	camResetViewportChanged(g_Camera); // re-set the camera's viwport changed flag after all events have been processed
+	//springPrimer();
 	glutPostRedisplay();// ask glut to update the screen
 }
 
