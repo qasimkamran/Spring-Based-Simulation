@@ -74,7 +74,11 @@ void parseVector(const char* acRaw, const char* acValue)
 	{
 		raaNode *pNode = nodeById(&g_System, g_uiParseCount++);
 
-		if (pNode) pNode->m_afPosition[csg_uiX] = fValue*800.0f;
+		if (pNode)
+		{
+			pNode->m_afPosition[csg_uiX] = fValue * 800.0f;
+			pNode->m_defaultPosition[csg_uiX] = fValue * 800.0f;
+		}
 	}
 	else if (g_uiParseField == csg_uiParseGDP)
 	{

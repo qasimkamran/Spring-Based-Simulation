@@ -140,6 +140,11 @@ void resetResultantForce(raaNode *pNode)
 	vecInit(pNode->m_resultantForce);
 }
 
+void copyDefaultToCurrentPosition(raaNode *pNode)
+{
+	vecCopy(pNode->m_defaultPosition, pNode->m_afPosition);
+}
+
 void createGlutMenu()
 {
 	submenuId = glutCreateMenu(menu);
@@ -158,6 +163,11 @@ void menu(int item)
 	switch (item)
 	{
 	case MENU_DEFAULT_LAYOUT:
+	{
+		visitNodes(&g_System, copyDefaultToCurrentPosition);
+		solverToggle = 0;
+		currentItem = (MENU_TYPE)item;
+	}
 	case MENU_WORLD_SYSTEMS_LAYOUT:
 		currentItem = (MENU_TYPE)item;
 		break;
