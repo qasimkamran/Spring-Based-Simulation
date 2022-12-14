@@ -56,7 +56,6 @@ void buildGrid(); // build the grid display list - display list are a performanc
 // Spring primer functions
 void springPrimer();
 void resetResultantForce(raaNode *pNode);
-void setVelocity(raaNode *pNode, float *velocity);
 void deriveForces(raaArc *pArc);
 void deriveTranslation(raaNode *pNode);
 
@@ -81,11 +80,8 @@ void deriveForces(raaArc *pArc)
 	raaNode *pNode_1 = pArc->m_pNode1;
 
 	float resultantVector[3];
-	long double distance = 0;
 	vecSub(pNode_1->m_afPosition, pNode_0->m_afPosition, resultantVector);
-	for (int i = 0; i < 3; i++)
-		distance += mathsSquared(resultantVector[i]);
-	distance = sqrt(distance);
+	long double distance = vecLength(resultantVector);
 
 	float resultantUnitVector[3];
 	for (int i = 0; i < 3; i++)
@@ -115,23 +111,14 @@ void deriveTranslation(raaNode *pNode)
 	for (int i = 0; i < 3; i++)
 		velocity[i] = (pNode->m_velocity[i] + acceleration[i]) * (1 - DAMPING_COEF);
 
-	setVelocity(pNode, velocity);
-	
-	for (int i = 0; i < 3; i++)
-		pNode->m_afPosition[i] += pNode->m_velocity[i];
-}
-
-void setVelocity(raaNode *pNode, float *velocity)
-{
 	vecCopy(velocity, pNode->m_velocity);
+	
+	vecAdd(pNode->m_afPosition, pNode->m_velocity, pNode->m_afPosition);
 }
 
 void resetResultantForce(raaNode *pNode)
 {
-	// resultant forces in x, y and z directions
-	pNode->m_resultantForce[0] = 0;
-	pNode->m_resultantForce[1] = 0;
-	pNode->m_resultantForce[2] = 0;
+	vecInit(pNode->m_resultantForce);
 }
 
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
