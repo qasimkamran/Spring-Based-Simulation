@@ -53,6 +53,21 @@ void nodeDisplay(raaNode *pNode); // callled by the display function to draw nod
 void arcDisplay(raaArc *pArc); // called by the display function to draw arcs
 void buildGrid(); // build the grid display list - display list are a performance optimization
 
+// UI menu functions
+void createGlutMenu();
+void menu(int item);
+
+// UI menu variables
+enum MENU_TYPE
+{
+	MENU_TOGGLE_GRID,
+	MENU_TOGGLE_SOLVER,
+	MENU_DEFAULT_LAYOUT,
+	MENU_WORLD_SYSTEMS_LAYOUT,
+};
+MENU_TYPE currentItem = MENU_TOGGLE_GRID;
+static int menuId, submenuId;
+
 // Spring primer functions
 void springPrimer();
 void resetResultantForce(raaNode *pNode);
@@ -119,6 +134,36 @@ void deriveTranslation(raaNode *pNode)
 void resetResultantForce(raaNode *pNode)
 {
 	vecInit(pNode->m_resultantForce);
+}
+
+void createGlutMenu()
+{
+	submenuId = glutCreateMenu(menu);
+	glutAddMenuEntry("Default", MENU_DEFAULT_LAYOUT);
+	glutAddMenuEntry("World System Layout", MENU_WORLD_SYSTEMS_LAYOUT);
+
+	menuId = glutCreateMenu(menu);
+	glutAddMenuEntry("Toggle Grid", MENU_TOGGLE_GRID);
+	glutAddMenuEntry("Toggle Solver", MENU_TOGGLE_SOLVER);
+	glutAddSubMenu("Switch Layouts", submenuId);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
+void menu(int item)
+{
+	switch (item)
+	{
+	case MENU_TOGGLE_GRID:
+	case MENU_TOGGLE_SOLVER:
+	case MENU_DEFAULT_LAYOUT:
+	case MENU_WORLD_SYSTEMS_LAYOUT:
+		currentItem = (MENU_TYPE) item;
+		break;
+	default:
+		break;
+	}
+
+	glutPostRedisplay();
 }
 
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
@@ -343,6 +388,8 @@ int main(int argc, char* argv[])
 		glutInitWindowPosition(csg_uiWindowDefinition[csg_uiX], csg_uiWindowDefinition[csg_uiY]);  // set rendering window position
 		glutInitWindowSize(csg_uiWindowDefinition[csg_uiWidth], csg_uiWindowDefinition[csg_uiHeight]); // set rendering window size
 		glutCreateWindow("raaAssignment1-2017");  // create rendering window and give it a name
+
+		createGlutMenu();
 
 		buildFont(); // setup text rendering (use outline print function to render 3D text
 
