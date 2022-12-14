@@ -51,8 +51,75 @@ void motion(int iXPos, int iYPos); // called for each mouse motion event
 void myInit(); // the myinit function runs once, before rendering starts and should be used for setup
 void nodeDisplay(raaNode *pNode); // callled by the display function to draw nodes
 void arcDisplay(raaArc *pArc); // called by the display function to draw arcs
-void buildGrid(); // 
+void buildGrid(); // build the grid display list - display list are a performance optimization
 
+// Spring primer functions
+void springPrimer();
+void resetResultantForce(raaNode *pNode);
+void deriveForces(raaArc *pArc);
+void deriveTranslation(raaNode *pNode);
+
+// Spring primer variables
+const float DAMPING_COEF = 0.99995f;
+
+void springPrimer()
+{
+	// Step 1
+	visitNodes(&g_System, resetResultantForce);
+	
+	// Step 2
+	visitArcs(&g_System, deriveForces);
+	
+	// Step 3
+	visitNodes(&g_System, deriveTranslation);
+}
+
+void deriveForces(raaArc *pArc)
+{
+	raaNode *pNode_0 = pArc->m_pNode0;
+	raaNode *pNode_1 = pArc->m_pNode1;
+
+	float resultantVector[3];
+	vecSub(pNode_1->m_afPosition, pNode_0->m_afPosition, resultantVector);
+	long double distance = vecLength(resultantVector);
+
+	float resultantUnitVector[3];
+	for (int i = 0; i < 3; i++)
+		resultantUnitVector[i] = resultantVector[i] / distance;
+
+	float extension = distance - pArc->m_fIdealLen;
+	float extensionVector[3];
+	vecScalarProduct(resultantUnitVector, extension, extensionVector);
+
+	float springForce_0[3];
+	vecScalarProduct(extensionVector, pArc->m_fSpringCoef, springForce_0);
+
+	float springForce_1[3];
+	vecScalarProduct(springForce_0, -1.0f, springForce_1);
+
+	vecAdd(pNode_0->m_resultantForce, springForce_0, pNode_0->m_resultantForce);
+	vecAdd(pNode_1->m_resultantForce, springForce_1, pNode_1->m_resultantForce);
+}
+
+void deriveTranslation(raaNode *pNode)
+{
+	float acceleration[3];
+	for (int i = 0; i < 3; i++)
+		acceleration[i] = pNode->m_resultantForce[i] / pNode->m_fMass;
+
+	float velocity[3];
+	for (int i = 0; i < 3; i++)
+		velocity[i] = (pNode->m_velocity[i] + acceleration[i]) * (1 - DAMPING_COEF);
+
+	vecCopy(velocity, pNode->m_velocity);
+	
+	vecAdd(pNode->m_afPosition, pNode->m_velocity, pNode->m_afPosition);
+}
+
+void resetResultantForce(raaNode *pNode)
+{
+	vecInit(pNode->m_resultantForce);
+}
 
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
 {
@@ -130,6 +197,7 @@ void idle()
 	controlChangeResetAll(g_Control); // re-set the update status for all of the control flags
 	camProcessInput(g_Input, g_Camera); // update the camera pos/ori based on changes since last render
 	camResetViewportChanged(g_Camera); // re-set the camera's viwport changed flag after all events have been processed
+	springPrimer();
 	glutPostRedisplay();// ask glut to update the screen
 }
 

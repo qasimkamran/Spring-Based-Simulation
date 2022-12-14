@@ -47,7 +47,7 @@ void parseArc(const char* acRaw, const char* acId0, const char* acId1, const cha
 	raaNode *pN0 = nodeById(&g_System, atoi(acId0));
 	raaNode *pN1 = nodeById(&g_System, atoi(acId1));
 
-	if (pN0 && pN1) addArc(&g_System, initArc(new raaArc, pN0, pN1, (float)atof(acStrength), csg_fParseDefaultSize));
+	if (pN0 && pN1) addArc(&g_System, initArc(new raaArc, pN0, pN1, (float)strtod(acStrength, NULL), csg_fParseDefaultSize));
 }
 
 void parsePartition(const char* acRaw, const char* acValue) 

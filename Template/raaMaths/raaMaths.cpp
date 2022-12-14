@@ -43,3 +43,8 @@ float mathsRadiusOfConeFromVolume(float fVolume)
 {
 	return powf((fVolume*3.0f) / (2.0f*cs_fPi), 0.33f);
 }
+
+float mathsSquared(float fValue)
+{
+	return fValue * fValue;
+}

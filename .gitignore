@@ -4,6 +4,8 @@
 *.ipch
 # except .cpp
 !*.cpp
+# except .h
+!*.h
 # except directories
 !*/
 !.gitignore
