@@ -67,6 +67,7 @@ enum MENU_TYPE
 };
 MENU_TYPE currentItem = MENU_TOGGLE_GRID;
 static int menuId, submenuId;
+int solverToggle = 0, gridToggle = 1;
 
 // Spring primer functions
 void springPrimer();
@@ -79,14 +80,17 @@ const float DAMPING_COEF = 0.99995f;
 
 void springPrimer()
 {
-	// Step 1
-	visitNodes(&g_System, resetResultantForce);
-	
-	// Step 2
-	visitArcs(&g_System, deriveForces);
-	
-	// Step 3
-	visitNodes(&g_System, deriveTranslation);
+	if (solverToggle == 1)
+	{
+		// Step 1
+		visitNodes(&g_System, resetResultantForce);
+
+		// Step 2
+		visitArcs(&g_System, deriveForces);
+
+		// Step 3
+		visitNodes(&g_System, deriveTranslation);
+	}
 }
 
 void deriveForces(raaArc *pArc)
@@ -153,11 +157,27 @@ void menu(int item)
 {
 	switch (item)
 	{
-	case MENU_TOGGLE_GRID:
-	case MENU_TOGGLE_SOLVER:
 	case MENU_DEFAULT_LAYOUT:
 	case MENU_WORLD_SYSTEMS_LAYOUT:
-		currentItem = (MENU_TYPE) item;
+		currentItem = (MENU_TYPE)item;
+		break;
+	case MENU_TOGGLE_GRID:
+	{
+		if (gridToggle == 0)
+			gridToggle = 1;
+		else
+			gridToggle = 0;
+		currentItem = (MENU_TYPE)item;
+	}
+		break;
+	case MENU_TOGGLE_SOLVER:
+	{
+		if (solverToggle == 0)
+			solverToggle = 1;
+		else
+			solverToggle = 0;
+		currentItem = (MENU_TYPE)item;
+	}
 		break;
 	default:
 		break;
@@ -215,7 +235,7 @@ void display()
 	glMultMatrixf(camObjMat(g_Camera)); // apply the current camera transform
 
 	// draw the grid if the control flag for it is true	
-	if (controlActive(g_Control, csg_uiControlDrawGrid)) glCallList(gs_uiGridDisplayList);
+	if (gridToggle == 1) glCallList(gs_uiGridDisplayList);
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS); // push attribute state to enable constrained state changes
 	visitNodes(&g_System, nodeDisplay); // loop through all of the nodes and draw them with the nodeDisplay function
