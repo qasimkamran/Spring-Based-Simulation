@@ -26,6 +26,7 @@ raaNode* initNode(raaNode* pNode, unsigned int uiId, float* pfPosition, float fM
 		vecInitPVec(pNode->m_resultantForce);
 		vecInitPVec(pNode->m_velocity);
 		vecInitPVec(pNode->m_defaultPosition);
+		vecInitPVec(pNode->m_worldSystemPosition);
 		vecCopy(pfPosition, pNode->m_defaultPosition);
 	}
 

@@ -25,6 +25,7 @@ typedef struct _raaNode
 	float m_resultantForce[4];
 	float m_velocity[4];
 	float m_defaultPosition[4];
+	float m_worldSystemPosition[4];
 } raaNode;
 
 typedef struct _raaArc
