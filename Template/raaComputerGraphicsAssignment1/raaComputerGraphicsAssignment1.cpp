@@ -215,7 +215,7 @@ void createGlutMenu()
 	glutAddMenuEntry("World System Layout", MENU_WORLD_SYSTEM_LAYOUT);
 	glutAddMenuEntry("Randomised Layout", MENU_RANDOM_LAYOUT);
 
-	// Menu entries
+	// Main menu entries
 	menuId = glutCreateMenu(menu);
 	glutAddMenuEntry("Toggle Grid", MENU_TOGGLE_GRID);
 	glutAddMenuEntry("Toggle Solver", MENU_TOGGLE_SOLVER);
