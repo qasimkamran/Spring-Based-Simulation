@@ -53,6 +53,28 @@ void nodeDisplay(raaNode *pNode); // callled by the display function to draw nod
 void arcDisplay(raaArc *pArc); // called by the display function to draw arcs
 void buildGrid(); // build the grid display list - display list are a performance optimization
 
+// UI menu functions
+void createGlutMenu();
+void menu(int item);
+
+// UI menu variables
+enum MENU_TYPE
+{
+	MENU_TOGGLE_GRID,
+	MENU_TOGGLE_SOLVER,
+	MENU_DEFAULT_LAYOUT,
+	MENU_WORLD_SYSTEM_LAYOUT,
+	MENU_RANDOM_LAYOUT
+};
+MENU_TYPE currentItem = MENU_TOGGLE_GRID;
+static int menuId, submenuId;
+int solverToggle = 0, gridToggle = 1;
+
+// Position alteration functions
+void copyWorldSystemToCurrentPosition(raaNode* pNode);
+void copyDefaultToCurrentPosition(raaNode *pNode);
+void setWorldSystemPosition();
+
 // Spring primer functions
 void springPrimer();
 void resetResultantForce(raaNode *pNode);
@@ -64,14 +86,17 @@ const float DAMPING_COEF = 0.99995f;
 
 void springPrimer()
 {
-	// Step 1
-	visitNodes(&g_System, resetResultantForce);
-	
-	// Step 2
-	visitArcs(&g_System, deriveForces);
-	
-	// Step 3
-	visitNodes(&g_System, deriveTranslation);
+	if (solverToggle == 1)
+	{
+		// Step 1
+		visitNodes(&g_System, resetResultantForce);
+
+		// Step 2
+		visitArcs(&g_System, deriveForces);
+
+		// Step 3
+		visitNodes(&g_System, deriveTranslation);
+	}
 }
 
 void deriveForces(raaArc *pArc)
@@ -119,6 +144,115 @@ void deriveTranslation(raaNode *pNode)
 void resetResultantForce(raaNode *pNode)
 {
 	vecInit(pNode->m_resultantForce);
+}
+
+void copyDefaultToCurrentPosition(raaNode *pNode)
+{
+	vecCopy(pNode->m_defaultPosition, pNode->m_afPosition);
+}
+
+void copyWorldSystemToCurrentPosition(raaNode* pNode)
+{
+	setWorldSystemPosition();
+	vecCopy(pNode->m_worldSystemPosition, pNode->m_afPosition);
+}
+
+void setWorldSystemPosition()
+{
+	int worldPosCount1 = 0, worldPosCount2 = 0, worldPosCount3 = 0;
+	for (raaLinkedListElement *pE = g_System.m_llNodes.m_pHead; pE; pE = pE->m_pNext)
+	{
+		raaNode *pNode = (raaNode*)pE->m_pData;
+		pNode->m_worldSystemPosition[0] = 300.0f * pNode->m_uiWorldSystem;
+		
+		if (pNode->m_uiWorldSystem == 1)
+		{
+			pNode->m_worldSystemPosition[1] = 50 * worldPosCount1;
+			pNode->m_worldSystemPosition[2] = 100;
+			worldPosCount1++;
+		}
+		else if (pNode->m_uiWorldSystem == 2)
+		{
+			pNode->m_worldSystemPosition[1] = 50 * worldPosCount2;
+			pNode->m_worldSystemPosition[2] = 0;
+			worldPosCount2++;
+		}
+		else if (pNode->m_uiWorldSystem == 3)
+		{
+			pNode->m_worldSystemPosition[1] = 50 * worldPosCount3;
+			pNode->m_worldSystemPosition[2] = 100;
+			worldPosCount3++;
+		}
+	}
+}
+
+void randomisePosition(raaNode* pNode)
+{
+	vecRand(100, 1000, pNode->m_afPosition);
+}
+
+void createGlutMenu()
+{
+	submenuId = glutCreateMenu(menu);
+	glutAddMenuEntry("Default", MENU_DEFAULT_LAYOUT);
+	glutAddMenuEntry("World System Layout", MENU_WORLD_SYSTEM_LAYOUT);
+	glutAddMenuEntry("Randomised Layout", MENU_RANDOM_LAYOUT);
+
+	menuId = glutCreateMenu(menu);
+	glutAddMenuEntry("Toggle Grid", MENU_TOGGLE_GRID);
+	glutAddMenuEntry("Toggle Solver", MENU_TOGGLE_SOLVER);
+	glutAddSubMenu("Switch Layouts", submenuId);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
+void menu(int item)
+{
+	switch (item)
+	{
+	case MENU_DEFAULT_LAYOUT:
+	{
+		visitNodes(&g_System, copyDefaultToCurrentPosition);
+		solverToggle = 0;
+		currentItem = (MENU_TYPE)item;
+	}
+	break;
+	case MENU_WORLD_SYSTEM_LAYOUT:
+	{
+		visitNodes(&g_System, copyWorldSystemToCurrentPosition);
+		solverToggle = 0;
+		currentItem = (MENU_TYPE)item;
+	}
+	break;
+	case MENU_RANDOM_LAYOUT:
+	{
+		visitNodes(&g_System, randomisePosition);
+		solverToggle = 0;
+		currentItem = (MENU_TYPE)item;
+	}
+	break;
+	case MENU_TOGGLE_GRID:
+	{
+		if (gridToggle == 0)
+			gridToggle = 1;
+		else
+			gridToggle = 0;
+		currentItem = (MENU_TYPE)item;
+	}
+		break;
+	case MENU_TOGGLE_SOLVER:
+	{
+		if (solverToggle == 0)
+			solverToggle = 1;
+		else
+			solverToggle = 0;
+		currentItem = (MENU_TYPE)item;
+	}
+		break;
+	default:
+		break;
+	}
+
+	glutPostRedisplay();
 }
 
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
@@ -170,7 +304,7 @@ void display()
 	glMultMatrixf(camObjMat(g_Camera)); // apply the current camera transform
 
 	// draw the grid if the control flag for it is true	
-	if (controlActive(g_Control, csg_uiControlDrawGrid)) glCallList(gs_uiGridDisplayList);
+	if (gridToggle == 1) glCallList(gs_uiGridDisplayList);
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS); // push attribute state to enable constrained state changes
 	visitNodes(&g_System, nodeDisplay); // loop through all of the nodes and draw them with the nodeDisplay function
@@ -343,6 +477,8 @@ int main(int argc, char* argv[])
 		glutInitWindowPosition(csg_uiWindowDefinition[csg_uiX], csg_uiWindowDefinition[csg_uiY]);  // set rendering window position
 		glutInitWindowSize(csg_uiWindowDefinition[csg_uiWidth], csg_uiWindowDefinition[csg_uiHeight]); // set rendering window size
 		glutCreateWindow("raaAssignment1-2017");  // create rendering window and give it a name
+
+		createGlutMenu();
 
 		buildFont(); // setup text rendering (use outline print function to render 3D text
 
