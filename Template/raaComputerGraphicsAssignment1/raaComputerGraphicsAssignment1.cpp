@@ -90,7 +90,7 @@ void springPrimer()
 {
 	if (solverToggle == 1)
 	{
-		// Step 1
+		// Step 1 Assignment
 		visitNodes(&g_System, resetResultantForce);
 
 		// Step 2
@@ -106,40 +106,50 @@ void deriveForces(raaArc *pArc)
 	raaNode *pNode_0 = pArc->m_pNode0;
 	raaNode *pNode_1 = pArc->m_pNode1;
 
+	// Resultant vector between 2 nodes and the magnitude of this vector
 	float resultantVector[3];
 	vecSub(pNode_1->m_afPosition, pNode_0->m_afPosition, resultantVector);
 	long double distance = vecLength(resultantVector);
 
+	// The unit vector derivation of the resultant vector
 	float resultantUnitVector[3];
 	for (int i = 0; i < 3; i++)
 		resultantUnitVector[i] = resultantVector[i] / distance;
 
+	// Extension through distance and base arc length and its 3D vector
 	float extension = distance - pArc->m_fIdealLen;
 	float extensionVector[3];
 	vecScalarProduct(resultantUnitVector, extension, extensionVector);
 
+	// Spring force vector = scalar product of extension vector with spring coefficient
 	float springForce_0[3];
 	vecScalarProduct(extensionVector, pArc->m_fSpringCoef, springForce_0);
 
+	// Spring force vector in the opposite direction for the second node
 	float springForce_1[3];
 	vecScalarProduct(springForce_0, -1.0f, springForce_1);
 
+	// Update resultant force
 	vecAdd(pNode_0->m_resultantForce, springForce_0, pNode_0->m_resultantForce);
 	vecAdd(pNode_1->m_resultantForce, springForce_1, pNode_1->m_resultantForce);
 }
 
 void deriveTranslation(raaNode *pNode)
 {
+	// Acceleration vector derived from force vector and mass
 	float acceleration[3];
 	for (int i = 0; i < 3; i++)
 		acceleration[i] = pNode->m_resultantForce[i] / pNode->m_fMass;
 
+	// Velocity vector for unit time = the sum of current velocity of the node and its acceleration, considering damping
 	float velocity[3];
 	for (int i = 0; i < 3; i++)
 		velocity[i] = (pNode->m_velocity[i] + acceleration[i]) * (1 - DAMPING_COEF);
 
+	// New velocity set as current velocity for the node
 	vecCopy(velocity, pNode->m_velocity);
 	
+	// Translation of the node is equal to the current velocity in unit time
 	vecAdd(pNode->m_afPosition, pNode->m_velocity, pNode->m_afPosition);
 }
 
@@ -162,6 +172,10 @@ void copyWorldSystemToCurrentPosition(raaNode* pNode)
 void setWorldSystemPosition()
 {
 	int worldPosCount1 = 0, worldPosCount2 = 0, worldPosCount3 = 0;
+	/* for each node in the nodes list,
+	 * adjust x position based on world system unit,
+	 * adjust y position based on previous node position,
+	 */
 	for (raaLinkedListElement *pE = g_System.m_llNodes.m_pHead; pE; pE = pE->m_pNext)
 	{
 		raaNode *pNode = (raaNode*)pE->m_pData;
@@ -195,11 +209,13 @@ void randomisePosition(raaNode* pNode)
 
 void createGlutMenu()
 {
+	// Sub menu entries
 	submenuId = glutCreateMenu(menu);
 	glutAddMenuEntry("Default", MENU_DEFAULT_LAYOUT);
 	glutAddMenuEntry("World System Layout", MENU_WORLD_SYSTEM_LAYOUT);
 	glutAddMenuEntry("Randomised Layout", MENU_RANDOM_LAYOUT);
 
+	// Menu entries
 	menuId = glutCreateMenu(menu);
 	glutAddMenuEntry("Toggle Grid", MENU_TOGGLE_GRID);
 	glutAddMenuEntry("Toggle Solver", MENU_TOGGLE_SOLVER);
@@ -287,16 +303,17 @@ void setContinentNodeAttributes(raaNode *pNode, int continent)
 			utilitiesColourToMat(new float[4] { 1.0f, 0.5f, 0.0f, 1.0f }, 1.0f);
 			glutSolidTorus(5.0f, mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
 			break;
-		default: // Black
+		default: // Black Sphere
 			utilitiesColourToMat(new float[4] { 0.0f, 0.0f, 0.0f, 1.0f }, 1.0f);
 			glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
 	}
+	glMultMatrixf(camRotMatInv(g_Camera));
 	drawLabels(pNode);
 }
 
 void drawLabels(raaNode* pNode)
 {
-	glScalef(10.0f, 10.0f, 2.0f);
+	glScalef(16.0f, 16.0f, 0.1f);
 	glTranslatef(0.0f, 1.50f, 0.0f);
 	outlinePrint(pNode->m_acName);
 }
@@ -372,7 +389,7 @@ void idle()
 	controlChangeResetAll(g_Control); // re-set the update status for all of the control flags
 	camProcessInput(g_Input, g_Camera); // update the camera pos/ori based on changes since last render
 	camResetViewportChanged(g_Camera); // re-set the camera's viwport changed flag after all events have been processed
-	springPrimer();
+	springPrimer(); // all spring based simulation functionality updating node position
 	glutPostRedisplay();// ask glut to update the screen
 }
 
