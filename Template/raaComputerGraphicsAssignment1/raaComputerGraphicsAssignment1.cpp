@@ -90,7 +90,7 @@ void springPrimer()
 {
 	if (solverToggle == 1)
 	{
-		// Step 1 Assignment
+		// Step 1
 		visitNodes(&g_System, resetResultantForce);
 
 		// Step 2
