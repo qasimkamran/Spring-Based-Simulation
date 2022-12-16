@@ -60,8 +60,6 @@ float* vecScalarProduct(const float *pV0, float fS, float *pVRes)
 	return pVRes;
 }
 
-
-
 float* vecSub( float *pV0, float *pV1, float *pVRes )
 {
 	if(pV0 && pV1 && pVRes)

@@ -52,7 +52,7 @@ void myInit(); // the myinit function runs once, before rendering starts and sho
 void nodeDisplay(raaNode *pNode); // callled by the display function to draw nodes
 void arcDisplay(raaArc *pArc); // called by the display function to draw arcs
 void buildGrid(); // build the grid display list - display list are a performance optimization
-void setContinentNodeAttributes(raaNode *pNode, int continent); //abstracts switch statement for continent shape
+void setContinentNodeAttributes(raaNode *pNode); //abstracts switch statement for continent shape
 void drawLabels(raaNode* pNode); //draws labels inside a mattrix
 
 // UI menu functions
@@ -66,7 +66,9 @@ enum MENU_TYPE
 	MENU_TOGGLE_SOLVER,
 	MENU_DEFAULT_LAYOUT,
 	MENU_WORLD_SYSTEM_LAYOUT,
-	MENU_RANDOM_LAYOUT
+	MENU_RANDOM_LAYOUT,
+	MENU_SPEED_UP,
+	MENU_SLOW_DOWN
 };
 MENU_TYPE currentItem = MENU_TOGGLE_GRID;
 static int menuId, submenuId;
@@ -85,6 +87,7 @@ void deriveTranslation(raaNode *pNode);
 
 // Spring primer variables
 const float DAMPING_COEF = 0.99995f;
+static float timeStep = 1.0f;
 
 void springPrimer()
 {
@@ -144,13 +147,19 @@ void deriveTranslation(raaNode *pNode)
 	// Velocity vector for unit time = the sum of current velocity of the node and its acceleration, considering damping
 	float velocity[3];
 	for (int i = 0; i < 3; i++)
-		velocity[i] = (pNode->m_velocity[i] + acceleration[i]) * (1 - DAMPING_COEF);
+		velocity[i] = (pNode->m_velocity[i] + acceleration[i]) * timeStep * (1 - DAMPING_COEF);
 
 	// New velocity set as current velocity for the node
 	vecCopy(velocity, pNode->m_velocity);
 	
-	// Translation of the node is equal to the current velocity in unit time
-	vecAdd(pNode->m_afPosition, pNode->m_velocity, pNode->m_afPosition);
+	// Translation of the node is equal to the current velocity divided by time
+	float displacement[3];
+	for (int i = 0; i < 3; i++)
+	{
+		displacement[i] = pNode->m_velocity[i] / timeStep;
+	}
+
+	vecAdd(pNode->m_afPosition, displacement, pNode->m_afPosition);
 }
 
 void resetResultantForce(raaNode *pNode)
@@ -165,7 +174,6 @@ void copyDefaultToCurrentPosition(raaNode *pNode)
 
 void copyWorldSystemToCurrentPosition(raaNode* pNode)
 {
-	setWorldSystemPosition();
 	vecCopy(pNode->m_worldSystemPosition, pNode->m_afPosition);
 }
 
@@ -219,6 +227,8 @@ void createGlutMenu()
 	menuId = glutCreateMenu(menu);
 	glutAddMenuEntry("Toggle Grid", MENU_TOGGLE_GRID);
 	glutAddMenuEntry("Toggle Solver", MENU_TOGGLE_SOLVER);
+	glutAddMenuEntry("Speed Up", MENU_SPEED_UP);
+	glutAddMenuEntry("Slow Down", MENU_SLOW_DOWN);
 	glutAddSubMenu("Switch Layouts", submenuId);
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
@@ -266,6 +276,18 @@ void menu(int item)
 		currentItem = (MENU_TYPE)item;
 	}
 		break;
+	case MENU_SPEED_UP:
+	{
+		timeStep -= 0.1;
+		currentItem = (MENU_TYPE)item;
+	}
+		break;
+	case MENU_SLOW_DOWN:
+	{
+		timeStep += 0.1;
+		currentItem = (MENU_TYPE)item;
+	}
+		break;
 	default:
 		break;
 	}
@@ -273,39 +295,44 @@ void menu(int item)
 	glutPostRedisplay();
 }
 
-void setContinentNodeAttributes(raaNode *pNode, int continent)
+void setContinentNodeAttributes(raaNode *pNode)
 {
+	int continent = pNode->m_uiContinent;
+	int worldSystem = pNode->m_uiWorldSystem;
 	float* position = pNode->m_afPosition;
 	glTranslated(position[0], position[1], position[2]);
 	switch (continent)
 	{
-		case 1: // Red Cube
-			utilitiesColourToMat(new float[4] { 1.0f, 0.0f, 0.0f, 1.0f }, 1.0f);
-			glutSolidCube(mathsDimensionOfCubeFromVolume(pNode->m_fMass));
+		case 1: // Indigo
+			utilitiesColourToMat(new float[4] { 0.29f, 0.0f, 0.51f, 1.0f }, 1.0f);
 			break;
-		case 2: // Green Cube
-			utilitiesColourToMat(new float[4] { 0.0f, 1.0f, 0.0f, 1.0f }, 1.0f);
-			glutSolidCube(mathsDimensionOfCubeFromVolume(pNode->m_fMass));
+		case 2: // Gray
+			utilitiesColourToMat(new float[4]{ 0.7f, 0.7f, 0.7f, 1.0f }, 1.0f);
 			break;
-		case 3: // Blue Cube
+		case 3: // Blue
 			utilitiesColourToMat(new float[4] { 0.0f, 0.0f, 1.0f, 1.0f }, 1.0f);
-			glutSolidCube(mathsDimensionOfCubeFromVolume(pNode->m_fMass));
 			break;
-		case 4: // Red Sphere
+		case 4: // Red
 			utilitiesColourToMat(new float[4] { 1.0f, 0.0f, 0.0f, 1.0f }, 1.0f);
-			glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
 			break;
-		case 5: // Green Sphere
+		case 5: // Green
 			utilitiesColourToMat(new float[4] { 0.0f, 1.0f, 0.0f, 1.0f }, 1.0f);
-			glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
 			break;
-		case 6: // Random Doughnut
+		case 6: // Orange
 			utilitiesColourToMat(new float[4] { 1.0f, 0.5f, 0.0f, 1.0f }, 1.0f);
-			glutSolidTorus(5.0f, mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
-			break;
-		default: // Black Sphere
-			utilitiesColourToMat(new float[4] { 0.0f, 0.0f, 0.0f, 1.0f }, 1.0f);
-			glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
+			break;			
+	}
+	switch (worldSystem)
+	{
+	case 1: // Cube
+		glutSolidCube(mathsDimensionOfCubeFromVolume(pNode->m_fMass));
+		break;
+	case 2: // Sphere
+		glutSolidSphere(mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
+		break;
+	case 3: // Doughnut
+		glutSolidTorus(5.0f, mathsRadiusOfSphereFromVolume(pNode->m_fMass), 15, 15);
+		break;
 	}
 	glMultMatrixf(camRotMatInv(g_Camera));
 	drawLabels(pNode);
@@ -320,14 +347,10 @@ void drawLabels(raaNode* pNode)
 
 void nodeDisplay(raaNode *pNode) // function to render a node (called from display())
 {
-	// put your node rendering (ogl) code here
-
-	unsigned int continent = pNode->m_uiContinent;
-
 	glPushMatrix();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	
-	setContinentNodeAttributes(pNode, continent);
+	setContinentNodeAttributes(pNode);
 
 	glPopAttrib();
 	glPopMatrix();
@@ -517,6 +540,7 @@ void myInit()
 	// initialise the data system and load the data file
 	initSystem(&g_System);
 	parse(g_acFile, parseSection, parseNetwork, parseArc, parsePartition, parseVector);
+	setWorldSystemPosition(); // sets world position on all nodes
 }
 
 int main(int argc, char* argv[])
